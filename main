@@ -1,4 +1,4 @@
--- Настройки точек (твои координаты)
+-- Настройки точек 
 local Point1 = Vector3.new(332.4, 184.9, 287.4)
 local Point2 = Vector3.new(428.3, 161.9, 347.8)
 local Point3 = Vector3.new(532.2, 209.8, 314.6)
@@ -122,9 +122,9 @@ local function createTPButton(text, layoutOrder, point)
 end
 
 -- Создаем три кнопки ТП
-createTPButton("ТП на Точку 1", 1, Point1)
-createTPButton("ТП на Точку 2", 2, Point2)
-createTPButton("ТП на Точку 3", 3, Point3)
+createTPButton("ТП 4 токена", 1, Point1)
+createTPButton("ТП 6 токенов", 2, Point2)
+createTPButton("ТП 16 токенов", 3, Point3)
 
 -- ==========================================
 -- ЛОГИКА ПОЛЕТА (FLY)
