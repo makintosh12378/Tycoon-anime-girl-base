@@ -16,7 +16,7 @@ screenGui.Name = "TeleportMenu"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Главное окно (увеличили высоту до 320)
+-- Главное окно 
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 200, 0, 320) 
@@ -30,7 +30,7 @@ local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 8)
 uiCorner.Parent = mainFrame
 
--- Верхняя панель (за нее таскаем)
+-- Верхняя панель 
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Size = UDim2.new(1, 0, 0, 30)
@@ -47,14 +47,14 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -60, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "Makintosh"
+title.Text = "Makintosh.v1"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 12
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = topBar
 
--- Кнопка закрытия (X)
+-- Кнопка закрытия
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -66,7 +66,7 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 14
 closeBtn.Parent = topBar
 
--- Кнопка свернуть (-)
+-- Кнопка свернуть
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -60, 0, 0)
@@ -150,7 +150,7 @@ local flyCorner = Instance.new("UICorner")
 flyCorner.CornerRadius = UDim.new(0, 6)
 flyCorner.Parent = flyBtn
 
--- === НОВЫЙ БЛОК: УПРАВЛЕНИЕ СКОРОСТЬЮ ===
+-- === УПРАВЛЕНИЕ СКОРОСТЬЮ ===
 local speedContainer = Instance.new("Frame")
 speedContainer.Size = UDim2.new(1, 0, 0, 35)
 speedContainer.BackgroundTransparency = 1
@@ -266,7 +266,7 @@ flyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Цикл обновления полета (движение)
+-- Цикл обновления полета
 RunService.RenderStepped:Connect(function()
     if isFlying and bodyVelocity and bodyGyro then
         local char = player.Character
