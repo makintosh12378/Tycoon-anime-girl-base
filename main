@@ -1,4 +1,4 @@
--- Настройки точек 
+-- Настройки точек (твои координаты)
 local Point1 = Vector3.new(332.4, 184.9, 287.4)
 local Point2 = Vector3.new(428.3, 161.9, 347.8)
 local Point3 = Vector3.new(532.2, 209.8, 314.6)
@@ -16,11 +16,11 @@ screenGui.Name = "TeleportMenu"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Главное окно 
+-- Главное окно (увеличили высоту до 380, чтобы поместились таймеры)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 200, 0, 320) 
-mainFrame.Position = UDim2.new(0.5, -100, 0.5, -160)
+mainFrame.Size = UDim2.new(0, 220, 0, 380) 
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -190)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
@@ -30,7 +30,7 @@ local uiCorner = Instance.new("UICorner")
 uiCorner.CornerRadius = UDim.new(0, 8)
 uiCorner.Parent = mainFrame
 
--- Верхняя панель 
+-- Верхняя панель
 local topBar = Instance.new("Frame")
 topBar.Name = "TopBar"
 topBar.Size = UDim2.new(1, 0, 0, 30)
@@ -42,7 +42,7 @@ local topCorner = Instance.new("UICorner")
 topCorner.CornerRadius = UDim.new(0, 8)
 topCorner.Parent = topBar
 
--- Заголовок
+-- Заголовок (изменен на Makintosh.v1)
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -60, 1, 0)
 title.Position = UDim2.new(0, 10, 0, 0)
@@ -50,11 +50,11 @@ title.BackgroundTransparency = 1
 title.Text = "Makintosh.v1"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.Font = Enum.Font.GothamBold
-title.TextSize = 12
+title.TextSize = 13
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = topBar
 
--- Кнопка закрытия
+-- Кнопка закрытия (X)
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -66,7 +66,7 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.TextSize = 14
 closeBtn.Parent = topBar
 
--- Кнопка свернуть
+-- Кнопка свернуть (-)
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.new(0, 30, 0, 30)
 minBtn.Position = UDim2.new(1, -60, 0, 0)
@@ -87,7 +87,7 @@ contentFrame.BackgroundTransparency = 1
 contentFrame.Parent = mainFrame
 
 local uiList = Instance.new("UIListLayout")
-uiList.Padding = UDim.new(0, 8)
+uiList.Padding = UDim.new(0, 6) -- Чуть уменьшили отступ
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
 uiList.Parent = contentFrame
 
@@ -99,8 +99,17 @@ local function teleportTo(point)
     end
 end
 
--- Функция создания кнопки ТП
+-- ==========================================
+-- ФУНКЦИЯ СОЗДАНИЯ КНОПКИ С ТАЙМЕРОМ
+-- ==========================================
 local function createTPButton(text, layoutOrder, point)
+    -- Обертка для кнопки и таймера
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, 0, 0, 35)
+    container.BackgroundTransparency = 1
+    container.LayoutOrder = layoutOrder * 10
+    container.Parent = contentFrame
+
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
@@ -109,32 +118,79 @@ local function createTPButton(text, layoutOrder, point)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamSemibold
     btn.TextSize = 14
-    btn.LayoutOrder = layoutOrder
-    btn.Parent = contentFrame
+    btn.Parent = container
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0, 6)
     btnCorner.Parent = btn
-    
+
+    -- Текст таймера (появляется под кнопкой)
+    local timerLabel = Instance.new("TextLabel")
+    timerLabel.Size = UDim2.new(1, 0, 0, 20)
+    timerLabel.Position = UDim2.new(0, 0, 0, 38)
+    timerLabel.BackgroundTransparency = 1
+    timerLabel.TextColor3 = Color3.fromRGB(255, 100, 100) -- Красноватый цвет
+    timerLabel.Font = Enum.Font.GothamSemibold
+    timerLabel.TextSize = 12
+    timerLabel.Text = ""
+    timerLabel.Visible = false
+    timerLabel.Parent = container
+
+    local isOnCooldown = false
+    local cooldownTime = 15 * 60 -- 15 минут в секундах (900 сек)
+
     btn.MouseButton1Click:Connect(function()
+        if isOnCooldown then return end -- Если на кулдауне, игнорируем клик
+
+        -- Телепортируем
         teleportTo(point)
+        
+        -- Ставим на кулдаун
+        isOnCooldown = true
+        
+        -- Ждем 3 секунды перед появлением таймера
+        task.delay(3, function()
+            timerLabel.Visible = true
+            local endTime = os.time() + cooldownTime
+            
+            -- Цикл отсчета времени
+            while os.time() < endTime do
+                local timeLeft = endTime - os.time()
+                local minutes = math.floor(timeLeft / 60)
+                local seconds = timeLeft % 60
+                timerLabel.Text = string.format("Доступно через: %02d:%02d", minutes, seconds)
+                task.wait(1)
+            end
+            
+            -- Таймер закончился
+            timerLabel.Visible = false
+            isOnCooldown = false
+        end)
+    end)
+    
+    -- Немного увеличиваем контейнер, если таймер виден (чтобы текст не наезжал)
+    timerLabel:GetPropertyChangedSignal("Visible"):Connect(function()
+        if timerLabel.Visible then
+            container.Size = UDim2.new(1, 0, 0, 60)
+        else
+            container.Size = UDim2.new(1, 0, 0, 35)
+        end
     end)
 end
 
--- Создаем три кнопки ТП
-createTPButton("ТП 4 токена", 1, Point1)
-createTPButton("ТП 6 токенов", 2, Point2)
-createTPButton("ТП 16 токенов", 3, Point3)
+-- Создаем три кнопки с новыми названиями
+createTPButton("1 - 4 токена", 1, Point1)
+createTPButton("2 - 6 токенов", 2, Point2)
+createTPButton("3 - 16 токенов", 3, Point3)
 
 -- ==========================================
 -- ЛОГИКА ПОЛЕТА (FLY)
 -- ==========================================
 local isFlying = false
-local flySpeed = 50 -- Текущая скорость
+local flySpeed = 50 
 local bodyVelocity
 local bodyGyro
 
--- Кнопка полета
 local flyBtn = Instance.new("TextButton")
 flyBtn.Size = UDim2.new(1, 0, 0, 35)
 flyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
@@ -150,14 +206,13 @@ local flyCorner = Instance.new("UICorner")
 flyCorner.CornerRadius = UDim.new(0, 6)
 flyCorner.Parent = flyBtn
 
--- === УПРАВЛЕНИЕ СКОРОСТЬЮ ===
+-- Управление скоростью
 local speedContainer = Instance.new("Frame")
 speedContainer.Size = UDim2.new(1, 0, 0, 35)
 speedContainer.BackgroundTransparency = 1
 speedContainer.LayoutOrder = 5
 speedContainer.Parent = contentFrame
 
--- Кнопка минус
 local minusBtn = Instance.new("TextButton")
 minusBtn.Size = UDim2.new(0, 30, 1, 0)
 minusBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
@@ -169,7 +224,6 @@ minusBtn.TextSize = 18
 minusBtn.Parent = speedContainer
 local minusCorner = Instance.new("UICorner") minusCorner.CornerRadius = UDim.new(0, 6) minusCorner.Parent = minusBtn
 
--- Текст со скоростью
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(1, -70, 1, 0)
 speedLabel.Position = UDim2.new(0, 35, 0, 0)
@@ -182,7 +236,6 @@ speedLabel.TextSize = 13
 speedLabel.Parent = speedContainer
 local speedCorner = Instance.new("UICorner") speedCorner.CornerRadius = UDim.new(0, 6) speedCorner.Parent = speedLabel
 
--- Кнопка плюс
 local plusBtn = Instance.new("TextButton")
 plusBtn.Size = UDim2.new(0, 30, 1, 0)
 plusBtn.Position = UDim2.new(1, -30, 0, 0)
@@ -195,21 +248,19 @@ plusBtn.TextSize = 18
 plusBtn.Parent = speedContainer
 local plusCorner = Instance.new("UICorner") plusCorner.CornerRadius = UDim.new(0, 6) plusCorner.Parent = plusBtn
 
--- Логика кнопок изменения скорости
 minusBtn.MouseButton1Click:Connect(function()
-    if flySpeed > 10 then -- Минимум 10
+    if flySpeed > 10 then
         flySpeed -= 10
         speedLabel.Text = "Скорость: " .. flySpeed
     end
 end)
 
 plusBtn.MouseButton1Click:Connect(function()
-    if flySpeed < 500 then -- Максимум 500
+    if flySpeed < 500 then
         flySpeed += 10
         speedLabel.Text = "Скорость: " .. flySpeed
     end
 end)
--- ==========================================
 
 local function stopFly()
     isFlying = false
@@ -266,7 +317,6 @@ flyBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Цикл обновления полета
 RunService.RenderStepped:Connect(function()
     if isFlying and bodyVelocity and bodyGyro then
         local char = player.Character
@@ -314,11 +364,13 @@ minBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         contentFrame.Visible = false
-        mainFrame.Size = UDim2.new(0, 200, 0, 30)
+        mainFrame.Size = UDim2.new(0, 220, 0, 30)
         minBtn.Text = "+"
     else
         contentFrame.Visible = true
-        mainFrame.Size = UDim2.new(0, 200, 0, 320) -- Возвращаем новую высоту
+        -- Если все таймеры видны, окно само растянется за счет изменения размера контейнеров.
+        -- Но мы задаем базовый размер окна, чтобы не было резких скачков.
+        mainFrame.Size = UDim2.new(0, 220, 0, 380) 
         minBtn.Text = "-"
     end
 end)
