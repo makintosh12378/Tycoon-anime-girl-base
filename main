@@ -1,109 +1,475 @@
--- Настройки точек (твои координаты)
+-- ==========================================
+-- НАСТРОЙКА КООРДИНАТ
+-- ==========================================
 local Point1 = Vector3.new(332.4, 184.9, 287.4)
 local Point2 = Vector3.new(428.3, 161.9, 347.8)
 local Point3 = Vector3.new(532.2, 209.8, 314.6)
 
--- Получаем игрока и сервисы
+local FarmPath = {
+    Vector3.new(328.3, 184.9, 289.7), Vector3.new(330.2, 184.9, 298.0),
+    Vector3.new(337.2, 184.9, 295.7), Vector3.new(336.1, 184.9, 288.1),
+    Vector3.new(425.3, 161.9, 348.0), Vector3.new(423.4, 161.9, 355.5),
+    Vector3.new(429.5, 161.9, 357.5), Vector3.new(431.6, 161.9, 349.6),
+    Vector3.new(521.0, 209.8, 333.7), Vector3.new(528.4, 209.8, 314.5),
+    Vector3.new(535.6, 209.8, 316.3), Vector3.new(527.3, 209.8, 336.2)
+}
+local PoolPosition = Vector3.new(23.1, 123.1, 119.7)
+
+-- Сервисы
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local VirtualUser = game:GetService("VirtualUser")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Создаем интерфейс
+-- Анти-AFK
+player.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new(0, 0))
+end)
+
+-- ==========================================
+-- ТЕМЫ ОФОРМЛЕНИЯ
+-- ==========================================
+local Themes = {
+    Dark = {
+        MainBg = Color3.fromRGB(30, 31, 34),
+        PanelBg = Color3.fromRGB(43, 45, 49),
+        Text = Color3.fromRGB(255, 255, 255),
+        SubText = Color3.fromRGB(180, 180, 180),
+        ButtonBg = Color3.fromRGB(88, 101, 242),
+        ButtonDanger = Color3.fromRGB(218, 55, 60),
+        ButtonSuccess = Color3.fromRGB(59, 165, 93),
+        SliderBg = Color3.fromRGB(60, 63, 65)
+    },
+    Light = {
+        MainBg = Color3.fromRGB(245, 246, 248),
+        PanelBg = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(30, 30, 30),
+        SubText = Color3.fromRGB(100, 100, 100),
+        ButtonBg = Color3.fromRGB(88, 101, 242),
+        ButtonDanger = Color3.fromRGB(218, 55, 60),
+        ButtonSuccess = Color3.fromRGB(59, 165, 93),
+        SliderBg = Color3.fromRGB(200, 200, 200)
+    }
+}
+local currentTheme = Themes.Dark
+local isDarkTheme = true
+
+-- ==========================================
+-- СОЗДАНИЕ GUI
+-- ==========================================
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "TeleportMenu"
+screenGui.Name = "MakintoshGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Главное окно (увеличили высоту до 380, чтобы поместились таймеры)
+-- Главное окно (Высота будет меняться автоматически)
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 220, 0, 380) 
-mainFrame.Position = UDim2.new(0.5, -110, 0.5, -190)
-mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+mainFrame.Size = UDim2.new(0, 240, 0, 300) 
+mainFrame.Position = UDim2.new(0.5, -120, 0.5, -190)
+mainFrame.BackgroundColor3 = currentTheme.MainBg
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
+mainFrame.ClipsDescendants = true
 mainFrame.Parent = screenGui
 
-local uiCorner = Instance.new("UICorner")
-uiCorner.CornerRadius = UDim.new(0, 8)
-uiCorner.Parent = mainFrame
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
 
 -- Верхняя панель
 local topBar = Instance.new("Frame")
-topBar.Name = "TopBar"
-topBar.Size = UDim2.new(1, 0, 0, 30)
-topBar.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+topBar.Size = UDim2.new(1, 0, 0, 35)
+topBar.BackgroundColor3 = currentTheme.PanelBg
 topBar.BorderSizePixel = 0
 topBar.Parent = mainFrame
+local topCorner = Instance.new("UICorner") topCorner.CornerRadius = UDim.new(0, 12) topCorner.Parent = topBar
+local topCover = Instance.new("Frame") topCover.Size = UDim2.new(1,0,0.5,0) topCover.Position = UDim2.new(0,0,0.5,0) topCover.BackgroundColor3 = currentTheme.PanelBg topCover.BorderSizePixel = 0 topCover.Parent = topBar
 
-local topCorner = Instance.new("UICorner")
-topCorner.CornerRadius = UDim.new(0, 8)
-topCorner.Parent = topBar
-
--- Заголовок (изменен на Makintosh.v1)
+-- Заголовок (Сделал чуть короче, чтобы не наезжал на кнопки)
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, -60, 1, 0)
-title.Position = UDim2.new(0, 10, 0, 0)
+title.Size = UDim2.new(1, -130, 1, 0)
+title.Position = UDim2.new(0, 15, 0, 0)
 title.BackgroundTransparency = 1
 title.Text = "Makintosh.v1"
-title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextColor3 = currentTheme.Text
 title.Font = Enum.Font.GothamBold
-title.TextSize = 13
+title.TextSize = 14
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = topBar
 
--- Кнопка закрытия (X)
-local closeBtn = Instance.new("TextButton")
-closeBtn.Size = UDim2.new(0, 30, 0, 30)
-closeBtn.Position = UDim2.new(1, -30, 0, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-closeBtn.BorderSizePixel = 0
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextSize = 14
-closeBtn.Parent = topBar
+-- Кнопка Настройки (Сдвинул левее)
+local settingsBtn = Instance.new("TextButton")
+settingsBtn.Size = UDim2.new(0, 25, 0, 25)
+settingsBtn.Position = UDim2.new(1, -100, 0, 5)
+settingsBtn.BackgroundColor3 = currentTheme.SubText
+settingsBtn.Text = "⚙"
+settingsBtn.TextColor3 = currentTheme.Text
+settingsBtn.Font = Enum.Font.GothamBold
+settingsBtn.TextSize = 16
+settingsBtn.Parent = topBar
+local setCorner = Instance.new("UICorner") setCorner.CornerRadius = UDim.new(0, 6) setCorner.Parent = settingsBtn
 
--- Кнопка свернуть (-)
+-- Кнопка Свернуть (Сдвинул левее)
 local minBtn = Instance.new("TextButton")
-minBtn.Size = UDim2.new(0, 30, 0, 30)
-minBtn.Position = UDim2.new(1, -60, 0, 0)
-minBtn.BackgroundColor3 = Color3.fromRGB(200, 150, 50)
-minBtn.BorderSizePixel = 0
+minBtn.Size = UDim2.new(0, 25, 0, 25)
+minBtn.Position = UDim2.new(1, -70, 0, 5)
+minBtn.BackgroundColor3 = currentTheme.SubText
 minBtn.Text = "-"
-minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.TextColor3 = currentTheme.Text
 minBtn.Font = Enum.Font.GothamBold
-minBtn.TextSize = 16
+minBtn.TextSize = 18
 minBtn.Parent = topBar
+local minCorner = Instance.new("UICorner") minCorner.CornerRadius = UDim.new(0, 6) minCorner.Parent = minBtn
 
--- Контейнер для кнопок
+-- Кнопка Закрыть (Сдвинул левее)
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 25, 0, 25)
+closeBtn.Position = UDim2.new(1, -40, 0, 5)
+closeBtn.BackgroundColor3 = currentTheme.ButtonDanger
+closeBtn.Text = "X"
+closeBtn.TextColor3 = currentTheme.Text
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextSize = 12
+closeBtn.Parent = topBar
+local closeCorner = Instance.new("UICorner") closeCorner.CornerRadius = UDim.new(0, 6) closeCorner.Parent = closeBtn
+
+-- Контейнер контента (кнопки)
 local contentFrame = Instance.new("Frame")
-contentFrame.Name = "Content"
-contentFrame.Size = UDim2.new(1, -20, 1, -40)
-contentFrame.Position = UDim2.new(0, 10, 0, 35)
+contentFrame.Size = UDim2.new(1, -20, 0, 0)
+contentFrame.Position = UDim2.new(0, 10, 0, 45)
 contentFrame.BackgroundTransparency = 1
+contentFrame.AutomaticSize = Enum.AutomaticSize.Y
 contentFrame.Parent = mainFrame
 
 local uiList = Instance.new("UIListLayout")
-uiList.Padding = UDim.new(0, 6) -- Чуть уменьшили отступ
+uiList.Padding = UDim.new(0, 8)
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
 uiList.Parent = contentFrame
 
--- Функция телепорта
-local function teleportTo(point)
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = CFrame.new(point + Vector3.new(0, 3, 0))
+-- ==========================================
+-- ПАНЕЛЬ НАСТРОЕК
+-- ==========================================
+local settingsFrame = Instance.new("Frame")
+settingsFrame.Size = UDim2.new(1, -20, 0, 0)
+settingsFrame.Position = UDim2.new(0, 10, 0, 45)
+settingsFrame.BackgroundTransparency = 1
+settingsFrame.Visible = false
+settingsFrame.AutomaticSize = Enum.AutomaticSize.Y
+settingsFrame.Parent = mainFrame
+
+local settingsList = Instance.new("UIListLayout")
+settingsList.Padding = UDim.new(0, 10)
+settingsList.SortOrder = Enum.SortOrder.LayoutOrder
+settingsList.Parent = settingsFrame
+
+-- Переключатель темы
+local themeBtn = Instance.new("TextButton")
+themeBtn.Size = UDim2.new(1, 0, 0, 35)
+themeBtn.BackgroundColor3 = currentTheme.SliderBg
+themeBtn.Text = "Тема: Тёмная"
+themeBtn.TextColor3 = currentTheme.Text
+themeBtn.Font = Enum.Font.GothamSemibold
+themeBtn.TextSize = 14
+themeBtn.LayoutOrder = 1
+themeBtn.Parent = settingsFrame
+local thmCorner = Instance.new("UICorner") thmCorner.CornerRadius = UDim.new(0, 6) thmCorner.Parent = themeBtn
+
+-- --- Слайдер СКОРОСТИ ПОЛЕТА ---
+local flySliderContainer = Instance.new("Frame")
+flySliderContainer.Size = UDim2.new(1, 0, 0, 45)
+flySliderContainer.BackgroundTransparency = 1
+flySliderContainer.LayoutOrder = 2
+flySliderContainer.Parent = settingsFrame
+
+local flySpeedTitle = Instance.new("TextLabel")
+flySpeedTitle.Size = UDim2.new(1, 0, 0, 20)
+flySpeedTitle.BackgroundTransparency = 1
+flySpeedTitle.Text = "Скорость полёта: 50"
+flySpeedTitle.TextColor3 = currentTheme.Text
+flySpeedTitle.Font = Enum.Font.GothamSemibold
+flySpeedTitle.TextSize = 14
+flySpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
+flySpeedTitle.Parent = flySliderContainer
+
+-- Сделал полоску короче на 20 пикселей и сдвинул вправо на 10
+local flySliderBg = Instance.new("Frame")
+flySliderBg.Size = UDim2.new(1, -20, 0, 6)
+flySliderBg.Position = UDim2.new(0, 10, 0, 30)
+flySliderBg.BackgroundColor3 = currentTheme.SliderBg
+flySliderBg.Parent = flySliderContainer
+local flBgCorner = Instance.new("UICorner") flBgCorner.CornerRadius = UDim.new(1, 0) flBgCorner.Parent = flySliderBg
+
+local flySliderFill = Instance.new("Frame")
+flySliderFill.Size = UDim2.new((50 - 10) / 490, 0, 1, 0)
+flySliderFill.BackgroundColor3 = currentTheme.ButtonBg
+flySliderFill.Parent = flySliderBg
+local flFillCorner = Instance.new("UICorner") flFillCorner.CornerRadius = UDim.new(1, 0) flFillCorner.Parent = flySliderFill
+
+local flySliderKnob = Instance.new("TextButton")
+flySliderKnob.Size = UDim2.new(0, 16, 0, 16)
+flySliderKnob.Position = UDim2.new((50 - 10) / 490, -8, 0.5, -8)
+flySliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+flySliderKnob.Text = ""
+flySliderKnob.Parent = flySliderBg
+local flKnobCorner = Instance.new("UICorner") flKnobCorner.CornerRadius = UDim.new(1, 0) flKnobCorner.Parent = flySliderKnob
+
+-- --- Слайдер СКОРОСТИ БЕГА ---
+local walkSliderContainer = Instance.new("Frame")
+walkSliderContainer.Size = UDim2.new(1, 0, 0, 45)
+walkSliderContainer.BackgroundTransparency = 1
+walkSliderContainer.LayoutOrder = 3
+walkSliderContainer.Parent = settingsFrame
+
+local walkSpeedTitle = Instance.new("TextLabel")
+walkSpeedTitle.Size = UDim2.new(1, 0, 0, 20)
+walkSpeedTitle.BackgroundTransparency = 1
+walkSpeedTitle.Text = "Скорость бега: 16"
+walkSpeedTitle.TextColor3 = currentTheme.Text
+walkSpeedTitle.Font = Enum.Font.GothamSemibold
+walkSpeedTitle.TextSize = 14
+walkSpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
+walkSpeedTitle.Parent = walkSliderContainer
+
+-- Сделал полоску короче на 20 пикселей и сдвинул вправо на 10
+local walkSliderBg = Instance.new("Frame")
+walkSliderBg.Size = UDim2.new(1, -20, 0, 6)
+walkSliderBg.Position = UDim2.new(0, 10, 0, 30)
+walkSliderBg.BackgroundColor3 = currentTheme.SliderBg
+walkSliderBg.Parent = walkSliderContainer
+local wlBgCorner = Instance.new("UICorner") wlBgCorner.CornerRadius = UDim.new(1, 0) wlBgCorner.Parent = walkSliderBg
+
+local walkSliderFill = Instance.new("Frame")
+walkSliderFill.Size = UDim2.new(0, 0, 1, 0)
+walkSliderFill.BackgroundColor3 = currentTheme.ButtonBg
+walkSliderFill.Parent = walkSliderBg
+local wlFillCorner = Instance.new("UICorner") wlFillCorner.CornerRadius = UDim.new(1, 0) wlFillCorner.Parent = walkSliderFill
+
+local walkSliderKnob = Instance.new("TextButton")
+walkSliderKnob.Size = UDim2.new(0, 16, 0, 16)
+walkSliderKnob.Position = UDim2.new(0, -8, 0.5, -8)
+walkSliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+walkSliderKnob.Text = ""
+walkSliderKnob.Parent = walkSliderBg
+local wlKnobCorner = Instance.new("UICorner") wlKnobCorner.CornerRadius = UDim.new(1, 0) wlKnobCorner.Parent = walkSliderKnob
+
+-- --- КНОПКА БЕСКОНЕЧНОГО ПРЫЖКА ---
+local infJumpBtn = Instance.new("TextButton")
+infJumpBtn.Size = UDim2.new(1, 0, 0, 35)
+infJumpBtn.BackgroundColor3 = currentTheme.ButtonDanger
+infJumpBtn.Text = "Бесконечный прыжок: ВЫКЛ"
+infJumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+infJumpBtn.Font = Enum.Font.GothamBold
+infJumpBtn.TextSize = 14
+infJumpBtn.LayoutOrder = 4
+infJumpBtn.Parent = settingsFrame
+local infJumpCorner = Instance.new("UICorner") infJumpCorner.CornerRadius = UDim.new(0, 6) infJumpCorner.Parent = infJumpBtn
+
+-- Кнопка Назад в настройках
+local backBtn = Instance.new("TextButton")
+backBtn.Size = UDim2.new(1, 0, 0, 35)
+backBtn.BackgroundColor3 = currentTheme.ButtonBg
+backBtn.Text = "Назад"
+backBtn.TextColor3 = currentTheme.Text
+backBtn.Font = Enum.Font.GothamSemibold
+backBtn.TextSize = 14
+backBtn.LayoutOrder = 5
+backBtn.Parent = settingsFrame
+local backCorner = Instance.new("UICorner") backCorner.CornerRadius = UDim.new(0, 6) backCorner.Parent = backBtn
+
+-- ==========================================
+-- ДИНАМИЧЕСКАЯ ВЫСОТА МЕНЮ
+-- ==========================================
+local isMinimized = false
+local isSettingsOpen = false
+
+local function updateMenuSize()
+    if isMinimized then return end
+    
+    local activeList = isSettingsOpen and settingsList or uiList
+    local targetHeight = 45 + activeList.AbsoluteContentSize.Y + 15
+    
+    local tween = TweenService:Create(mainFrame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 240, 0, targetHeight)})
+    tween:Play()
+end
+
+uiList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    if not isSettingsOpen and not isMinimized then updateMenuSize() end
+end)
+
+settingsList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    if isSettingsOpen and not isMinimized then updateMenuSize() end
+end)
+
+-- ==========================================
+-- ЛОГИКА НАСТРОЕК И ТЕМ
+-- ==========================================
+local isInfiniteJumpEnabled = false
+
+local function updateTheme()
+    currentTheme = isDarkTheme and Themes.Dark or Themes.Light
+    
+    mainFrame.BackgroundColor3 = currentTheme.MainBg
+    topBar.BackgroundColor3 = currentTheme.PanelBg
+    topCover.BackgroundColor3 = currentTheme.PanelBg
+    
+    title.TextColor3 = currentTheme.Text
+    settingsBtn.BackgroundColor3 = currentTheme.SubText
+    minBtn.BackgroundColor3 = currentTheme.SubText
+    minBtn.TextColor3 = currentTheme.Text
+    closeBtn.BackgroundColor3 = currentTheme.ButtonDanger
+    
+    themeBtn.BackgroundColor3 = currentTheme.SliderBg
+    themeBtn.TextColor3 = currentTheme.Text
+    themeBtn.Text = isDarkTheme and "Тема: Тёмная" or "Тема: Светлая"
+    
+    flySpeedTitle.TextColor3 = currentTheme.Text
+    flySliderBg.BackgroundColor3 = currentTheme.SliderBg
+    flySliderFill.BackgroundColor3 = currentTheme.ButtonBg
+
+    walkSpeedTitle.TextColor3 = currentTheme.Text
+    walkSliderBg.BackgroundColor3 = currentTheme.SliderBg
+    walkSliderFill.BackgroundColor3 = currentTheme.ButtonBg
+
+    infJumpBtn.BackgroundColor3 = isInfiniteJumpEnabled and currentTheme.ButtonSuccess or currentTheme.ButtonDanger
+
+    backBtn.BackgroundColor3 = currentTheme.ButtonBg
+    backBtn.TextColor3 = currentTheme.Text
+    
+    for _, child in pairs(contentFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            if child.Name ~= "FarmBtn" and child.Name ~= "FlyBtn" then
+                child.BackgroundColor3 = currentTheme.ButtonBg
+            end
+        elseif child:IsA("Frame") then
+            for _, subChild in pairs(child:GetChildren()) do
+                if subChild:IsA("TextButton") and subChild.Name == "TPBtn" then
+                    subChild.BackgroundColor3 = currentTheme.ButtonBg
+                end
+            end
+        end
+    end
+    
+    if flyBtn then flyBtn.BackgroundColor3 = isFlying and currentTheme.ButtonSuccess or currentTheme.ButtonDanger end
+    if farmBtn then farmBtn.BackgroundColor3 = isFarming and currentTheme.ButtonSuccess or currentTheme.ButtonDanger end
+    
+    if floatingTimerFrame then
+        floatingTimerFrame.BackgroundColor3 = currentTheme.PanelBg
+        floatingTimerLabel.TextColor3 = currentTheme.Text
     end
 end
 
+settingsBtn.MouseButton1Click:Connect(function()
+    if isMinimized then return end
+    isSettingsOpen = not isSettingsOpen
+    if isSettingsOpen then
+        contentFrame.Visible = false
+        settingsFrame.Visible = true
+    else
+        settingsFrame.Visible = false
+        contentFrame.Visible = true
+    end
+    updateMenuSize()
+end)
+
+backBtn.MouseButton1Click:Connect(function()
+    isSettingsOpen = false
+    settingsFrame.Visible = false
+    contentFrame.Visible = true
+    updateMenuSize()
+end)
+
+themeBtn.MouseButton1Click:Connect(function()
+    isDarkTheme = not isDarkTheme
+    updateTheme()
+end)
+
+infJumpBtn.MouseButton1Click:Connect(function()
+    isInfiniteJumpEnabled = not isInfiniteJumpEnabled
+    infJumpBtn.Text = isInfiniteJumpEnabled and "Бесконечный прыжок: ВКЛ" or "Бесконечный прыжок: ВЫКЛ"
+    infJumpBtn.BackgroundColor3 = isInfiniteJumpEnabled and currentTheme.ButtonSuccess or currentTheme.ButtonDanger
+end)
+
 -- ==========================================
--- ФУНКЦИЯ СОЗДАНИЯ КНОПКИ С ТАЙМЕРОМ
+-- СЛАЙДЕРЫ
 -- ==========================================
+local flySpeed = 50
+local walkSpeed = 16
+local draggingFlySlider = false
+local draggingWalkSlider = false
+
+flySliderKnob.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFlySlider = true end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingFlySlider = false end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if draggingFlySlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mouseX = input.Position.X
+        local sliderPos = flySliderBg.AbsolutePosition.X
+        local sliderSize = flySliderBg.AbsoluteSize.X
+        local percent = math.clamp((mouseX - sliderPos) / sliderSize, 0, 1)
+        
+        flySpeed = math.floor(10 + percent * 490)
+        flySliderFill.Size = UDim2.new(percent, 0, 1, 0)
+        flySliderKnob.Position = UDim2.new(percent, -8, 0.5, -8)
+        flySpeedTitle.Text = "Скорость полёта: " .. flySpeed
+    end
+end)
+
+walkSliderKnob.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingWalkSlider = true end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then draggingWalkSlider = false end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if draggingWalkSlider and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mouseX = input.Position.X
+        local sliderPos = walkSliderBg.AbsolutePosition.X
+        local sliderSize = walkSliderBg.AbsoluteSize.X
+        local percent = math.clamp((mouseX - sliderPos) / sliderSize, 0, 1)
+        
+        walkSpeed = math.floor(16 + percent * (250 - 16))
+        walkSliderFill.Size = UDim2.new(percent, 0, 1, 0)
+        walkSliderKnob.Position = UDim2.new(percent, -8, 0.5, -8)
+        walkSpeedTitle.Text = "Скорость бега: " .. walkSpeed
+
+        local char = player.Character
+        if char and char:FindFirstChild("Humanoid") then
+            char.Humanoid.WalkSpeed = walkSpeed
+        end
+    end
+end)
+
+-- ==========================================
+-- ЛОГИКА БЕСКОНЕЧНОГО ПРЫЖКА
+-- ==========================================
+UserInputService.JumpRequest:Connect(function()
+    if isInfiniteJumpEnabled then
+        local char = player.Character
+        if char and char:FindFirstChildOfClass("Humanoid") then
+            char:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+-- ==========================================
+-- КНОПКИ ТЕЛЕПОРТА
+-- ==========================================
+local function teleportTo(point)
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.CFrame = CFrame.new(point)
+    end
+end
+
 local function createTPButton(text, layoutOrder, point)
-    -- Обертка для кнопки и таймера
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, 0, 0, 35)
     container.BackgroundTransparency = 1
@@ -111,161 +477,214 @@ local function createTPButton(text, layoutOrder, point)
     container.Parent = contentFrame
 
     local btn = Instance.new("TextButton")
+    btn.Name = "TPBtn"
     btn.Size = UDim2.new(1, 0, 0, 35)
-    btn.BackgroundColor3 = Color3.fromRGB(70, 130, 200)
-    btn.BorderSizePixel = 0
+    btn.BackgroundColor3 = currentTheme.ButtonBg
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Font = Enum.Font.GothamSemibold
     btn.TextSize = 14
     btn.Parent = container
-    
-    local btnCorner = Instance.new("UICorner")
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    btnCorner.Parent = btn
+    local btnCorner = Instance.new("UICorner") btnCorner.CornerRadius = UDim.new(0, 6) btnCorner.Parent = btn
 
-    -- Текст таймера (появляется под кнопкой)
-    local timerLabel = Instance.new("TextLabel")
-    timerLabel.Size = UDim2.new(1, 0, 0, 20)
-    timerLabel.Position = UDim2.new(0, 0, 0, 38)
-    timerLabel.BackgroundTransparency = 1
-    timerLabel.TextColor3 = Color3.fromRGB(255, 100, 100) -- Красноватый цвет
-    timerLabel.Font = Enum.Font.GothamSemibold
-    timerLabel.TextSize = 12
-    timerLabel.Text = ""
-    timerLabel.Visible = false
-    timerLabel.Parent = container
+    local timerBtn = Instance.new("TextButton")
+    timerBtn.Size = UDim2.new(1, 0, 0, 20)
+    timerBtn.Position = UDim2.new(0, 0, 0, 38)
+    timerBtn.BackgroundTransparency = 1
+    timerBtn.TextColor3 = currentTheme.ButtonDanger
+    timerBtn.Font = Enum.Font.GothamSemibold
+    timerBtn.TextSize = 11
+    timerBtn.Text = ""
+    timerBtn.Visible = false
+    timerBtn.Parent = container
 
-    local isOnCooldown = false
-    local cooldownTime = 15 * 60 -- 15 минут в секундах (900 сек)
+    local isTimerRunning = false
+    local cooldownTime = 15 * 60
 
     btn.MouseButton1Click:Connect(function()
-        if isOnCooldown then return end -- Если на кулдауне, игнорируем клик
-
-        -- Телепортируем
         teleportTo(point)
         
-        -- Ставим на кулдаун
-        isOnCooldown = true
-        
-        -- Ждем 3 секунды перед появлением таймера
-        task.delay(3, function()
-            timerLabel.Visible = true
-            local endTime = os.time() + cooldownTime
-            
-            -- Цикл отсчета времени
-            while os.time() < endTime do
-                local timeLeft = endTime - os.time()
-                local minutes = math.floor(timeLeft / 60)
-                local seconds = timeLeft % 60
-                timerLabel.Text = string.format("Доступно через: %02d:%02d", minutes, seconds)
-                task.wait(1)
-            end
-            
-            -- Таймер закончился
-            timerLabel.Visible = false
-            isOnCooldown = false
-        end)
+        if not isTimerRunning then
+            isTimerRunning = true
+            task.delay(3, function()
+                if not isTimerRunning then return end
+                timerBtn.Visible = true
+                local endTime = os.time() + cooldownTime
+                while os.time() < endTime and isTimerRunning do
+                    local timeLeft = endTime - os.time()
+                    local minutes = math.floor(timeLeft / 60)
+                    local seconds = timeLeft % 60
+                    timerBtn.Text = string.format("Сброс через: %02d:%02d", minutes, seconds)
+                    task.wait(1)
+                end
+                timerBtn.Visible = false
+                isTimerRunning = false
+            end)
+        end
     end)
     
-    -- Немного увеличиваем контейнер, если таймер виден (чтобы текст не наезжал)
-    timerLabel:GetPropertyChangedSignal("Visible"):Connect(function()
-        if timerLabel.Visible then
-            container.Size = UDim2.new(1, 0, 0, 60)
-        else
-            container.Size = UDim2.new(1, 0, 0, 35)
-        end
+    timerBtn.MouseButton1Click:Connect(function()
+        isTimerRunning = false
+        timerBtn.Visible = false
+    end)
+    
+    timerBtn:GetPropertyChangedSignal("Visible"):Connect(function()
+        container.Size = timerBtn.Visible and UDim2.new(1, 0, 0, 60) or UDim2.new(1, 0, 0, 35)
     end)
 end
 
--- Создаем три кнопки с новыми названиями
-createTPButton("1 - 4 токена", 1, Point1)
-createTPButton("2 - 6 токенов", 2, Point2)
-createTPButton("3 - 16 токенов", 3, Point3)
+createTPButton("4 токена", 1, Point1)
+createTPButton("6 токенов", 2, Point2)
+createTPButton("16 токенов", 3, Point3)
+
+-- ==========================================
+-- ПЛАВАЮЩИЙ ТАЙМЕР
+-- ==========================================
+local floatingTimerFrame = Instance.new("Frame")
+floatingTimerFrame.Name = "FloatingTimer"
+floatingTimerFrame.Size = UDim2.new(0, 160, 0, 40)
+floatingTimerFrame.Position = UDim2.new(1, -170, 1, -60)
+floatingTimerFrame.BackgroundColor3 = currentTheme.PanelBg
+floatingTimerFrame.Visible = false
+floatingTimerFrame.Parent = screenGui
+local floatCorner = Instance.new("UICorner") floatCorner.CornerRadius = UDim.new(0, 8) floatCorner.Parent = floatingTimerFrame
+
+local floatingTimerLabel = Instance.new("TextLabel")
+floatingTimerLabel.Size = UDim2.new(1, 0, 1, 0)
+floatingTimerLabel.BackgroundTransparency = 1
+floatingTimerLabel.Text = "Отдых: 15:00"
+floatingTimerLabel.TextColor3 = currentTheme.Text
+floatingTimerLabel.Font = Enum.Font.GothamBold
+floatingTimerLabel.TextSize = 14
+floatingTimerLabel.Parent = floatingTimerFrame
+
+local dragFloat, startFloat, startFloatPos
+floatingTimerFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragFloat = true
+        startFloat = input.Position
+        startFloatPos = floatingTimerFrame.Position
+    end
+end)
+floatingTimerFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then dragFloat = false end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragFloat and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - startFloat
+        floatingTimerFrame.Position = UDim2.new(startFloatPos.X.Scale, startFloatPos.X.Offset + delta.X, startFloatPos.Y.Scale, startFloatPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ==========================================
+-- ЛОГИКА АВТО-ФАРМА
+-- ==========================================
+local isFarming = false
+local farmTween
+
+local farmBtn = Instance.new("TextButton")
+farmBtn.Name = "FarmBtn"
+farmBtn.Size = UDim2.new(1, 0, 0, 35)
+farmBtn.BackgroundColor3 = currentTheme.ButtonDanger
+farmBtn.Text = "Авто-фарм: ВЫКЛ"
+farmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+farmBtn.Font = Enum.Font.GothamBold
+farmBtn.TextSize = 14
+farmBtn.LayoutOrder = 35
+farmBtn.Parent = contentFrame
+local farmCorner = Instance.new("UICorner") farmCorner.CornerRadius = UDim.new(0, 6) farmCorner.Parent = farmBtn
+
+local function stopFarm()
+    isFarming = false
+    farmBtn.Text = "Авто-фарм: ВЫКЛ"
+    farmBtn.BackgroundColor3 = currentTheme.ButtonDanger
+    floatingTimerFrame.Visible = false
+    
+    if farmTween then farmTween:Cancel() farmTween = nil end
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Anchored = false end
+end
+
+farmBtn.MouseButton1Click:Connect(function()
+    if isFarming then
+        stopFarm()
+    else
+        isFarming = true
+        farmBtn.Text = "Авто-фарм: ВКЛ"
+        farmBtn.BackgroundColor3 = currentTheme.ButtonSuccess
+        
+        task.spawn(function()
+            local char = player.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+            
+            while isFarming do
+                root.Anchored = true
+                
+                for i, waypoint in ipairs(FarmPath) do
+                    if not isFarming then break end
+                    local targetCFrame = CFrame.new(waypoint) 
+                    farmTween = TweenService:Create(root, TweenInfo.new(1.5, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+                    farmTween:Play()
+                    farmTween.Completed:Wait()
+                    task.wait(0.5)
+                end
+                
+                if not isFarming then break end
+
+                root.CFrame = CFrame.new(PoolPosition)
+                task.wait(0.5)
+                root.Anchored = false
+                
+                floatingTimerFrame.Visible = true
+                
+                local restSeconds = 15 * 60 
+                for i = restSeconds, 1, -1 do
+                    if not isFarming then break end
+                    local minutes = math.floor(i / 60)
+                    local seconds = i % 60
+                    local timeStr = string.format("Отдых: %02d:%02d", minutes, seconds)
+                    
+                    farmBtn.Text = timeStr
+                    floatingTimerLabel.Text = timeStr
+                    task.wait(1)
+                end
+                
+                floatingTimerFrame.Visible = false
+                
+                if isFarming then
+                    farmBtn.Text = "Авто-фарм: ВКЛ"
+                    root.Anchored = true
+                    root.CFrame = CFrame.new(FarmPath[1])
+                end
+            end
+        end)
+    end
+end)
 
 -- ==========================================
 -- ЛОГИКА ПОЛЕТА (FLY)
 -- ==========================================
 local isFlying = false
-local flySpeed = 50 
 local bodyVelocity
 local bodyGyro
 
 local flyBtn = Instance.new("TextButton")
+flyBtn.Name = "FlyBtn"
 flyBtn.Size = UDim2.new(1, 0, 0, 35)
-flyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-flyBtn.BorderSizePixel = 0
+flyBtn.BackgroundColor3 = currentTheme.ButtonDanger
 flyBtn.Text = "Полёт: ВЫКЛ"
 flyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 flyBtn.Font = Enum.Font.GothamBold
 flyBtn.TextSize = 14
-flyBtn.LayoutOrder = 4
+flyBtn.LayoutOrder = 40
 flyBtn.Parent = contentFrame
-
-local flyCorner = Instance.new("UICorner")
-flyCorner.CornerRadius = UDim.new(0, 6)
-flyCorner.Parent = flyBtn
-
--- Управление скоростью
-local speedContainer = Instance.new("Frame")
-speedContainer.Size = UDim2.new(1, 0, 0, 35)
-speedContainer.BackgroundTransparency = 1
-speedContainer.LayoutOrder = 5
-speedContainer.Parent = contentFrame
-
-local minusBtn = Instance.new("TextButton")
-minusBtn.Size = UDim2.new(0, 30, 1, 0)
-minusBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-minusBtn.BorderSizePixel = 0
-minusBtn.Text = "-"
-minusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-minusBtn.Font = Enum.Font.GothamBold
-minusBtn.TextSize = 18
-minusBtn.Parent = speedContainer
-local minusCorner = Instance.new("UICorner") minusCorner.CornerRadius = UDim.new(0, 6) minusCorner.Parent = minusBtn
-
-local speedLabel = Instance.new("TextLabel")
-speedLabel.Size = UDim2.new(1, -70, 1, 0)
-speedLabel.Position = UDim2.new(0, 35, 0, 0)
-speedLabel.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-speedLabel.BorderSizePixel = 0
-speedLabel.Text = "Скорость: " .. flySpeed
-speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-speedLabel.Font = Enum.Font.GothamSemibold
-speedLabel.TextSize = 13
-speedLabel.Parent = speedContainer
-local speedCorner = Instance.new("UICorner") speedCorner.CornerRadius = UDim.new(0, 6) speedCorner.Parent = speedLabel
-
-local plusBtn = Instance.new("TextButton")
-plusBtn.Size = UDim2.new(0, 30, 1, 0)
-plusBtn.Position = UDim2.new(1, -30, 0, 0)
-plusBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
-plusBtn.BorderSizePixel = 0
-plusBtn.Text = "+"
-plusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-plusBtn.Font = Enum.Font.GothamBold
-plusBtn.TextSize = 18
-plusBtn.Parent = speedContainer
-local plusCorner = Instance.new("UICorner") plusCorner.CornerRadius = UDim.new(0, 6) plusCorner.Parent = plusBtn
-
-minusBtn.MouseButton1Click:Connect(function()
-    if flySpeed > 10 then
-        flySpeed -= 10
-        speedLabel.Text = "Скорость: " .. flySpeed
-    end
-end)
-
-plusBtn.MouseButton1Click:Connect(function()
-    if flySpeed < 500 then
-        flySpeed += 10
-        speedLabel.Text = "Скорость: " .. flySpeed
-    end
-end)
+local flyCorner = Instance.new("UICorner") flyCorner.CornerRadius = UDim.new(0, 6) flyCorner.Parent = flyBtn
 
 local function stopFly()
     isFlying = false
     flyBtn.Text = "Полёт: ВЫКЛ"
-    flyBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    flyBtn.BackgroundColor3 = currentTheme.ButtonDanger
     
     local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
@@ -284,12 +703,11 @@ local function startFly()
     local char = player.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
     local hum = char and char:FindFirstChild("Humanoid")
-    
     if not root or not hum then return end
 
     isFlying = true
     flyBtn.Text = "Полёт: ВКЛ"
-    flyBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+    flyBtn.BackgroundColor3 = currentTheme.ButtonSuccess
 
     hum.PlatformStand = true
     for _, state in pairs(Enum.HumanoidStateType:GetEnumItems()) do
@@ -341,48 +759,47 @@ RunService.RenderStepped:Connect(function()
         else
             bodyVelocity.Velocity = Vector3.zero
         end
-        
         bodyGyro.CFrame = camera.CFrame
     end
 end)
 
-player.CharacterAdded:Connect(function()
+player.CharacterAdded:Connect(function(char)
     if isFlying then stopFly() end
+    if isFarming then stopFarm() end
+    task.wait(1)
+    local hum = char:WaitForChild("Humanoid")
+    if hum then hum.WalkSpeed = walkSpeed end
 end)
 
 -- ==========================================
--- КНОПКИ СВОРАЧИВАНИЯ И ПЕРЕТАСКИВАНИЯ
+-- СВОРАЧИВАНИЕ И ПЕРЕТАСКИВАНИЕ
 -- ==========================================
-local isMinimized = false
-
 closeBtn.MouseButton1Click:Connect(function()
     if isFlying then stopFly() end
+    if isFarming then stopFarm() end
     screenGui:Destroy()
 end)
 
 minBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
+        isSettingsOpen = false
         contentFrame.Visible = false
-        mainFrame.Size = UDim2.new(0, 220, 0, 30)
+        settingsFrame.Visible = false
+        mainFrame.Size = UDim2.new(0, 240, 0, 35)
         minBtn.Text = "+"
     else
         contentFrame.Visible = true
-        -- Если все таймеры видны, окно само растянется за счет изменения размера контейнеров.
-        -- Но мы задаем базовый размер окна, чтобы не было резких скачков.
-        mainFrame.Size = UDim2.new(0, 220, 0, 380) 
         minBtn.Text = "-"
+        updateMenuSize()
     end
 end)
 
--- Перетаскивание
 local dragging, dragInput, dragStart, startPos
-
 local function update(input)
     local delta = input.Position - dragStart
     mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
-
 mainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
@@ -393,13 +810,25 @@ mainFrame.InputBegan:Connect(function(input)
         end)
     end
 end)
-
 mainFrame.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
-
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then update(input) end
 end)
+
+-- ==========================================
+-- СКРЫТИЕ МЕНЮ ПО КНОПКЕ INSERT
+-- ==========================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Insert then
+        screenGui.Enabled = not screenGui.Enabled
+    end
+end)
+
+-- Инициализация
+updateTheme()
+updateMenuSize()
