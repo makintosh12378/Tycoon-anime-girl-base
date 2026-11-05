@@ -463,8 +463,7 @@ end)
 local function teleportTo(point)
     local char = player.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
-        -- Поднимаем на 3 стада, чтобы не застрять в полу
-        char.HumanoidRootPart.CFrame = CFrame.new(point + Vector3.new(0, 3, 0))
+        char.HumanoidRootPart.CFrame = CFrame.new(point + Vector3.new(0, 2, 0))
     end
 end
 
@@ -576,7 +575,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ==========================================
--- ЛОГИКА АВТО-ФАРМА (ИСПРАВЛЕНА)
+-- ЛОГИКА АВТО-ФАРМА 
 -- ==========================================
 local isFarming = false
 local farmTween
@@ -619,15 +618,15 @@ farmBtn.MouseButton1Click:Connect(function()
                 if not root then break end
                 
                 root.Anchored = true
-                task.wait(0.5) -- Даем серверу время
+                task.wait(0.5) 
                 
                 -- 1. Цикл полета по точкам
                 for i, waypoint in ipairs(FarmPath) do
                     if not isFarming or not root.Parent then break end
                     
-                    local targetCFrame = CFrame.new(waypoint + Vector3.new(0, 3, 0)) -- Поднимаем на 3 стада
+                    -- Подняли всего на 0.5 стада, чтобы лететь прямо над монетами
+                    local targetCFrame = CFrame.new(waypoint + Vector3.new(0, 0.5, 0)) 
                     
-                    -- Если летим из бассейна на 1 остров, делаем это медленнее, чтобы античит не крашнул игру
                     local dist = (root.Position - waypoint).Magnitude
                     local tTime = dist > 150 and 4 or 1.5 
 
@@ -641,7 +640,7 @@ farmBtn.MouseButton1Click:Connect(function()
 
                 -- 2. Телепорт в бассейн
                 if root and root.Parent then
-                    root.CFrame = CFrame.new(PoolPosition + Vector3.new(0, 3, 0))
+                    root.CFrame = CFrame.new(PoolPosition + Vector3.new(0, 1, 0))
                     task.wait(0.2)
                     root.Anchored = false -- Отпускаем в воду
                 end
@@ -666,8 +665,8 @@ farmBtn.MouseButton1Click:Connect(function()
                 if isFarming then
                     farmBtn.Text = "Авто-фарм: ВКЛ"
                     if root and root.Parent then
-                        root.Anchored = true -- Включаем якорь перед возвращением
-                        root.CFrame = root.CFrame + Vector3.new(0, 5, 0) -- Приподнимаем из воды
+                        root.Anchored = true 
+                        root.CFrame = root.CFrame + Vector3.new(0, 1, 0) -- Поднимаем из воды совсем чуть-чуть
                         task.wait(0.5)
                     end
                 end
