@@ -66,7 +66,7 @@ screenGui.Name = "MakintoshGui"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
--- Главное окно (Высота будет меняться автоматически)
+-- Главное окно
 local mainFrame = Instance.new("Frame")
 mainFrame.Name = "MainFrame"
 mainFrame.Size = UDim2.new(0, 240, 0, 300) 
@@ -90,7 +90,7 @@ topBar.Parent = mainFrame
 local topCorner = Instance.new("UICorner") topCorner.CornerRadius = UDim.new(0, 12) topCorner.Parent = topBar
 local topCover = Instance.new("Frame") topCover.Size = UDim2.new(1,0,0.5,0) topCover.Position = UDim2.new(0,0,0.5,0) topCover.BackgroundColor3 = currentTheme.PanelBg topCover.BorderSizePixel = 0 topCover.Parent = topBar
 
--- Заголовок (Сделал чуть короче, чтобы не наезжал на кнопки)
+-- Заголовок
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -130, 1, 0)
 title.Position = UDim2.new(0, 15, 0, 0)
@@ -102,7 +102,7 @@ title.TextSize = 14
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = topBar
 
--- Кнопка Настройки (Сдвинул левее)
+-- Кнопка Настройки
 local settingsBtn = Instance.new("TextButton")
 settingsBtn.Size = UDim2.new(0, 25, 0, 25)
 settingsBtn.Position = UDim2.new(1, -100, 0, 5)
@@ -114,7 +114,7 @@ settingsBtn.TextSize = 16
 settingsBtn.Parent = topBar
 local setCorner = Instance.new("UICorner") setCorner.CornerRadius = UDim.new(0, 6) setCorner.Parent = settingsBtn
 
--- Кнопка Свернуть (Сдвинул левее)
+-- Кнопка Свернуть
 local minBtn = Instance.new("TextButton")
 minBtn.Size = UDim2.new(0, 25, 0, 25)
 minBtn.Position = UDim2.new(1, -70, 0, 5)
@@ -126,7 +126,7 @@ minBtn.TextSize = 18
 minBtn.Parent = topBar
 local minCorner = Instance.new("UICorner") minCorner.CornerRadius = UDim.new(0, 6) minCorner.Parent = minBtn
 
--- Кнопка Закрыть (Сдвинул левее)
+-- Кнопка Закрыть
 local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 25, 0, 25)
 closeBtn.Position = UDim2.new(1, -40, 0, 5)
@@ -196,7 +196,6 @@ flySpeedTitle.TextSize = 14
 flySpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
 flySpeedTitle.Parent = flySliderContainer
 
--- Сделал полоску короче на 20 пикселей и сдвинул вправо на 10
 local flySliderBg = Instance.new("Frame")
 flySliderBg.Size = UDim2.new(1, -20, 0, 6)
 flySliderBg.Position = UDim2.new(0, 10, 0, 30)
@@ -235,7 +234,6 @@ walkSpeedTitle.TextSize = 14
 walkSpeedTitle.TextXAlignment = Enum.TextXAlignment.Left
 walkSpeedTitle.Parent = walkSliderContainer
 
--- Сделал полоску короче на 20 пикселей и сдвинул вправо на 10
 local walkSliderBg = Instance.new("Frame")
 walkSliderBg.Size = UDim2.new(1, -20, 0, 6)
 walkSliderBg.Position = UDim2.new(0, 10, 0, 30)
@@ -465,7 +463,8 @@ end)
 local function teleportTo(point)
     local char = player.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = CFrame.new(point)
+        -- Поднимаем на 3 стада, чтобы не застрять в полу
+        char.HumanoidRootPart.CFrame = CFrame.new(point + Vector3.new(0, 3, 0))
     end
 end
 
@@ -533,9 +532,9 @@ local function createTPButton(text, layoutOrder, point)
     end)
 end
 
-createTPButton("4 токена", 1, Point1)
-createTPButton("6 токенов", 2, Point2)
-createTPButton("16 токенов", 3, Point3)
+createTPButton("1 - 4 токена", 1, Point1)
+createTPButton("2 - 6 токенов", 2, Point2)
+createTPButton("3 - 16 токенов", 3, Point3)
 
 -- ==========================================
 -- ПЛАВАЮЩИЙ ТАЙМЕР
@@ -577,7 +576,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- ==========================================
--- ЛОГИКА АВТО-ФАРМА
+-- ЛОГИКА АВТО-ФАРМА (ИСПРАВЛЕНА)
 -- ==========================================
 local isFarming = false
 local farmTween
@@ -614,17 +613,25 @@ farmBtn.MouseButton1Click:Connect(function()
         farmBtn.BackgroundColor3 = currentTheme.ButtonSuccess
         
         task.spawn(function()
-            local char = player.Character
-            local root = char and char:FindFirstChild("HumanoidRootPart")
-            if not root then return end
-            
             while isFarming do
-                root.Anchored = true
+                local char = player.Character
+                local root = char and char:FindFirstChild("HumanoidRootPart")
+                if not root then break end
                 
+                root.Anchored = true
+                task.wait(0.5) -- Даем серверу время
+                
+                -- 1. Цикл полета по точкам
                 for i, waypoint in ipairs(FarmPath) do
-                    if not isFarming then break end
-                    local targetCFrame = CFrame.new(waypoint) 
-                    farmTween = TweenService:Create(root, TweenInfo.new(1.5, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
+                    if not isFarming or not root.Parent then break end
+                    
+                    local targetCFrame = CFrame.new(waypoint + Vector3.new(0, 3, 0)) -- Поднимаем на 3 стада
+                    
+                    -- Если летим из бассейна на 1 остров, делаем это медленнее, чтобы античит не крашнул игру
+                    local dist = (root.Position - waypoint).Magnitude
+                    local tTime = dist > 150 and 4 or 1.5 
+
+                    farmTween = TweenService:Create(root, TweenInfo.new(tTime, Enum.EasingStyle.Linear), {CFrame = targetCFrame})
                     farmTween:Play()
                     farmTween.Completed:Wait()
                     task.wait(0.5)
@@ -632,12 +639,16 @@ farmBtn.MouseButton1Click:Connect(function()
                 
                 if not isFarming then break end
 
-                root.CFrame = CFrame.new(PoolPosition)
-                task.wait(0.5)
-                root.Anchored = false
+                -- 2. Телепорт в бассейн
+                if root and root.Parent then
+                    root.CFrame = CFrame.new(PoolPosition + Vector3.new(0, 3, 0))
+                    task.wait(0.2)
+                    root.Anchored = false -- Отпускаем в воду
+                end
                 
                 floatingTimerFrame.Visible = true
                 
+                -- 3. Отдых 15 минут
                 local restSeconds = 15 * 60 
                 for i = restSeconds, 1, -1 do
                     if not isFarming then break end
@@ -654,8 +665,11 @@ farmBtn.MouseButton1Click:Connect(function()
                 
                 if isFarming then
                     farmBtn.Text = "Авто-фарм: ВКЛ"
-                    root.Anchored = true
-                    root.CFrame = CFrame.new(FarmPath[1])
+                    if root and root.Parent then
+                        root.Anchored = true -- Включаем якорь перед возвращением
+                        root.CFrame = root.CFrame + Vector3.new(0, 5, 0) -- Приподнимаем из воды
+                        task.wait(0.5)
+                    end
                 end
             end
         end)
